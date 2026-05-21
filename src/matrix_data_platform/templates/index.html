@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATRIX — Data Platform & Ingestion Control Center</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b1120;
+            --card-bg: rgba(15, 23, 42, 0.85);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --accent-color: #3b82f6;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            background-image: radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.12) 0%, transparent 50%);
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo { display: flex; align-items: center; gap: 0.75rem; }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .logo-title { font-size: 1.3rem; font-weight: 700; }
+        .logo-subtitle { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            backdrop-filter: blur(12px);
+            max-width: 1000px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1.25rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .pipeline-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">📊</div>
+            <div>
+                <div class="logo-title">MATRIX</div>
+                <div class="logo-subtitle">Plateforme d'Ingestion Centralisée & Pipelines OSINT</div>
+            </div>
+        </div>
+        <div class="badge">INGESTION ENGINE ONLINE</div>
+    </header>
+
+    <div class="card">
+        <div class="card-title">État des Pipelines d'Ingestion (Débit: <span id="mTotal" style="color:#60a5fa;">-</span> Enregistrements/jour)</div>
+        <div id="pipelinesList">Chargement des pipelines...</div>
+    </div>
+
+    <script>
+        async function chargerPipelinesMatrix() {
+            try {
+                const response = await fetch('/api/v1/status');
+                const contract = await response.json();
+                const r = contract.result;
+
+                document.getElementById('mTotal').textContent = (r.total_records_processed_today || 0).toLocaleString();
+
+                const list = document.getElementById('pipelinesList');
+                list.innerHTML = '';
+
+                (r.pipelines || []).forEach(p => {
+                    list.innerHTML += `
+                        <div class="pipeline-item">
+                            <div>
+                                <strong style="font-size:0.95rem; display:block; margin-bottom:0.2rem;">${p.name}</strong>
+                                <span style="font-size:0.8rem; color:var(--text-muted);">Débit: ${p.throughput_eps} evt/s | Statut: ${p.status}</span>
+                            </div>
+                            <span class="badge" style="background:rgba(16,185,129,0.15); color:#34d399;">OPÉRATIONNEL</span>
+                        </div>
+                    `;
+                });
+
+            } catch (err) {
+                console.error("Erreur lors de la vérification Matrix.");
+            }
+        }
+
+        window.onload = chargerPipelinesMatrix;
+    </script>
+</body>
+</html>
