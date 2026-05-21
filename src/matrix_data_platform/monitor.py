@@ -16,3 +16,5 @@ def pipeline_status() -> ResultContract:
         value="healthy", source="matrix_platform", observed_at=now,
         confidence=1.0, status=EpistemicStatus.FACT))
     return contract
+
+# rosetta deduplication connected
